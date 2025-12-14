@@ -1,5 +1,6 @@
 plugins {
     kotlin("js") version "1.9.24"
+    id("org.jetbrains.dokka") version "1.9.20"
 }
 
 group = "com.minesweeper"
