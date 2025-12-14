@@ -24,27 +24,27 @@ fun setupUI(game: Game) {
     val app = document.getElementById("app") ?: document.body!!
 
     app.innerHTML = """
-        <div style="text-align:center; max-width:520px; margin:auto;">
-            <h1>🎮 Сапёр на Kotlin/JS</h1>
+        <div style="max-width:540px;margin:auto;font-family:Arial;">
+            <h1 style="text-align:center;">🎮 Сапёр на Kotlin/JS</h1>
 
             <div style="
                 display:flex;
                 justify-content:space-between;
                 align-items:center;
-                padding:10px 20px;
-                background:#f0f0f0;
-                border-radius:10px;
-                font-family:monospace;
+                padding:12px 20px;
+                background:#f2f2f2;
+                border-radius:12px;
                 font-size:22px;
+                margin-bottom:15px;
             ">
                 💣 <span id="mine-count-value">${game.getRemainingMines()}</span>
 
                 <button id="smiley-btn"
-                    style="font-size:28px;width:60px;height:60px;border-radius:50%;">
+                    style="font-size:28px;width:60px;height:60px;border-radius:50%;cursor:pointer;">
                     😊
                 </button>
 
-                ⏱️ <span id="timer-value">0</span>
+                ⏱ <span id="timer-value">0</span>
             </div>
 
             <div id="game-board"
@@ -52,25 +52,25 @@ fun setupUI(game: Game) {
                 display:grid;
                 grid-template-columns:repeat(${game.cols}, 36px);
                 gap:4px;
+                padding:6px;
                 background:#888;
-                padding:10px;
                 border-radius:8px;
-                margin-top:15px;
+                width:fit-content;
+                margin:auto;
                 ">
             </div>
 
             <div style="
                 margin-top:15px;
-                text-align:left;
-                background:#fafafa;
                 padding:12px;
+                background:#fafafa;
                 border-radius:8px;
                 font-size:14px;
             ">
                 <b>Как играть:</b><br>
                 🖱 ЛКМ — открыть клетку<br>
-                🖱 ПКМ — поставить / убрать флаг<br>
-                😊 — перезапуск игры<br>
+                🖱 ПКМ — флаг<br>
+                😊 — перезапуск<br>
                 <br>
                 ⚠ Флаги можно ставить только после первого хода
             </div>
@@ -97,34 +97,33 @@ fun renderGame(game: Game) {
             val btn = document.createElement("button") as HTMLButtonElement
 
             btn.style.cssText = """
-                width:36px;height:36px;
+                width:36px;
+                height:36px;
                 font-size:16px;
                 font-weight:bold;
-                user-select:none;
-                border:3px outset #ccc;
+                border-radius:4px;
+                border:2px solid #aaa;
+                background:#cfcfcf;
                 cursor:pointer;
+                user-select:none;
             """
 
             if (cell.isRevealed) {
+                btn.style.background = "#e8e8e8"
                 btn.style.border = "1px solid #999"
-                btn.style.background = "#e0e0e0"
-
                 when {
                     cell.hasMine -> btn.textContent = "💣"
                     cell.minesAround > 0 -> btn.textContent = cell.minesAround.toString()
                 }
-            } else {
-                btn.style.background = "#c0c0c0"
-                if (cell.isFlagged) btn.textContent = "🚩"
+            } else if (cell.isFlagged) {
+                btn.textContent = "🚩"
             }
 
-            // ЛКМ
             btn.addEventListener("click", {
                 game.revealCell(row, col)
                 renderGame(game)
             })
 
-            // ПКМ
             btn.addEventListener("contextmenu", { e ->
                 e.preventDefault()
                 game.toggleFlag(row, col)
@@ -136,13 +135,13 @@ fun renderGame(game: Game) {
     }
 
     if (game.gameState == GameState.WON) {
-        window.setTimeout({window.alert("🎉 Победа!\nВремя: ${game.elapsedTime} сек")
+        window.setTimeout({window.alert("🎉 Победа! Время: ${game.elapsedTime} сек")
         }, 100)
     }
 
     if (game.gameState == GameState.LOST) {
         window.setTimeout({
-            window.alert("💥 Поражение!\nНажмите 😊 для новой игры")
+            window.alert("💥 Вы проиграли")
         }, 100)
     }
 }

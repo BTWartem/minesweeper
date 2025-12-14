@@ -2,26 +2,30 @@ package com.minesweeper.model
 
 import kotlin.random.Random
 
-class Field(val rows: Int, val cols: Int, val totalMines: Int) {
+class Field(
+    val rows: Int,
+    val cols: Int,
+    val totalMines: Int
+) {
     val cells: Array<Array<Cell>> = Array(rows) { Array(cols) { Cell() } }
     var minesGenerated = false
 
     fun generateMines(excludeRow: Int, excludeCol: Int) {
-        val excluded = mutableSetOf<Pair<Int, Int>>()
+        val forbidden = mutableSetOf<Pair<Int, Int>>()
 
         for (i in -1..1)
             for (j in -1..1) {
                 val r = excludeRow + i
                 val c = excludeCol + j
                 if (r in 0 until rows && c in 0 until cols)
-                    excluded.add(r to c)
+                    forbidden += r to c
             }
 
         var placed = 0
         while (placed < totalMines) {
             val r = Random.nextInt(rows)
             val c = Random.nextInt(cols)
-            if ((r to c) in excluded || cells[r][c].hasMine) continue
+            if ((r to c) in forbidden || cells[r][c].hasMine) continue
             cells[r][c].hasMine = true
             placed++
         }
@@ -81,22 +85,26 @@ class Field(val rows: Int, val cols: Int, val totalMines: Int) {
 
     fun toggleFlag(row: Int, col: Int): Boolean {
         val cell = cells[row][col]
-        if (!cell.isRevealed) {
-            cell.isFlagged = !cell.isFlagged
-            return true
-        }
-        return false
-    }
+        if (cell.isRevealed) return false
 
-    fun checkWin(): Boolean =
-        cells.all { row -> row.all { it.hasMine || it.isRevealed } }
+        // ❗ нельзя поставить больше флагов, чем мин
+        if (!cell.isFlagged && getRemainingMines() <= 0) return false
 
-    fun revealAllMines() {
-        cells.flatten().filter { it.hasMine }.forEach { it.isRevealed = true }
+        cell.isFlagged = !cell.isFlagged
+        return true
     }
 
     fun getRemainingMines(): Int =
         totalMines - cells.flatten().count { it.isFlagged }
+
+    fun checkWin(): Boolean =
+        cells.flatten().all { it.hasMine || it.isRevealed }
+
+    fun revealAllMines() {
+        cells.flatten()
+            .filter { it.hasMine }
+            .forEach { it.isRevealed = true }
+    }
 
     fun restart() {
         cells.flatten().forEach {
