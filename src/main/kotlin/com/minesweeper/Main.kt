@@ -11,11 +11,10 @@ fun main() {
         setupUI(game)
         renderGame(game)
 
-        // Таймер
         window.setInterval({
             if (game.gameState == GameState.PLAYING) {
-                val timer = document.getElementById("timer")
-                timer?.textContent = "⏱️: ${game.elapsedTime}"
+                document.getElementById("timer-value")!!.textContent =
+                    game.elapsedTime.toString()
             }
         }, 1000)
     }
@@ -25,184 +24,125 @@ fun setupUI(game: Game) {
     val app = document.getElementById("app") ?: document.body!!
 
     app.innerHTML = """
-        <div style="text-align: center; max-width: 500px; margin: 0 auto;">
+        <div style="text-align:center; max-width:520px; margin:auto;">
             <h1>🎮 Сапёр на Kotlin/JS</h1>
-            
-            <div id="status-panel" style="
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin: 20px 0;
-                padding: 10px 20px;
-                background: #f5f5f5;
-                border-radius: 10px;
-                font-family: monospace;
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                padding:10px 20px;
+                background:#f0f0f0;
+                border-radius:10px;
+                font-family:monospace;
+                font-size:22px;
             ">
-                <div id="mine-count" style="font-size: 24px; font-weight: bold;">
-                    💣: <span id="mine-count-value">${game.getRemainingMines()}</span>
-                </div>
-                
-                <button id="smiley-btn" style="
-                    font-size: 28px;
-                    width: 60px;
-                    height: 60px;
-                    border-radius: 50%;
-                    border: 3px solid #999;
-                    cursor: pointer;
-                    background: #ffd700;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                ">😊</button>
-                
-                <div id="timer" style="font-size: 24px; font-weight: bold;">
-                    ⏱️: <span id="timer-value">0</span>
-                </div>
+                💣 <span id="mine-count-value">${game.getRemainingMines()}</span>
+
+                <button id="smiley-btn"
+                    style="font-size:28px;width:60px;height:60px;border-radius:50%;">
+                    😊
+                </button>
+
+                ⏱️ <span id="timer-value">0</span>
             </div>
-            
-            <div id="game-board" style="
-                display: grid;
-                grid-template-columns: repeat(${game.cols}, 35px);
-                grid-gap: 3px;
-                justify-content: center;
-                background: #888;
-                padding: 10px;
-                border-radius: 8px;
-                margin: 0 auto;
-            "></div>
-            
-            <div style="margin-top: 25px; color: #555; font-size: 14px; text-align: left; padding: 15px; background: #f9f9f9; border-radius: 8px;">
-                <p><strong>Как играть:</strong></p>
-                <p>🖱️ <strong>Левый клик</strong> — открыть клетку</p>
-                <p>🖱️ <strong>Правый клик</strong> — поставить/убрать флаг 🚩</p>
-                <p>😊 <strong>Нажмите смайлик</strong> — перезапустить игру</p>
-                <p style="margin-top: 10px; color: #777;">Цифра показывает сколько мин вокруг клетки</p>
+
+            <div id="game-board"
+                style="
+                display:grid;
+                grid-template-columns:repeat(${game.cols}, 36px);
+                gap:4px;
+                background:#888;
+                padding:10px;
+                border-radius:8px;
+                margin-top:15px;
+                ">
+            </div>
+
+            <div style="
+                margin-top:15px;
+                text-align:left;
+                background:#fafafa;
+                padding:12px;
+                border-radius:8px;
+                font-size:14px;
+            ">
+                <b>Как играть:</b><br>
+                🖱 ЛКМ — открыть клетку<br>
+                🖱 ПКМ — поставить / убрать флаг<br>
+                😊 — перезапуск игры<br>
+                <br>
+                ⚠ Флаги можно ставить только после первого хода
             </div>
         </div>
     """
 
-    // Обработчик для кнопки смайлика
-    document.getElementById("smiley-btn")?.addEventListener("click", {
-        game.restart()
-        renderGame(game)
-    })
+    document.getElementById("smiley-btn")!!
+        .addEventListener("click", {
+            game.restart()
+            renderGame(game)
+        })
 }
 
 fun renderGame(game: Game) {
-    val board = document.getElementById("game-board") ?: return
-    val mineCountValue = document.getElementById("mine-count-value") ?: return
-    val timerValue = document.getElementById("timer-value") ?: return
-    val smileyBtn = document.getElementById("smiley-btn") ?: return
+    val board = document.getElementById("game-board")!!
+    document.getElementById("mine-count-value")!!.textContent =
+        game.getRemainingMines().toString()
 
-    // Обновляем счетчики
-    mineCountValue.textContent = game.getRemainingMines().toString()
-    timerValue.textContent = game.elapsedTime.toString()
-
-    // Обновляем смайлик
-    smileyBtn.textContent = when (game.gameState) {
-        GameState.PLAYING -> "😊"
-        GameState.WON -> "😎"
-        GameState.LOST -> "💀"
-    }
-
-    // Очищаем поле
     board.innerHTML = ""
 
-    // Создаем кнопки для клеток
     for (row in 0 until game.rows) {
         for (col in 0 until game.cols) {
             val cell = game.field.cells[row][col]
+            val btn = document.createElement("button") as HTMLButtonElement
 
-            val button = document.createElement("button") as HTMLButtonElement
-
-            // Базовые стили
-            button.style.cssText = """
-                width: 35px;
-                height: 35px;
-                border: 3px outset #ccc;
-                font-weight: bold;
-                cursor: pointer;
-                font-size: 16px;
-                margin: 0;
-                padding: 0;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.1s;
+            btn.style.cssText = """
+                width:36px;height:36px;
+                font-size:16px;
+                font-weight:bold;
+                user-select:none;
+                border:3px outset #ccc;
+                cursor:pointer;
             """
 
-            // Стили в зависимости от состояния клетки
             if (cell.isRevealed) {
-                button.style.border = "1px solid #999"
-                button.style.background = "#e0e0e0"
+                btn.style.border = "1px solid #999"
+                btn.style.background = "#e0e0e0"
 
-                if (cell.hasMine) {
-                    button.style.background = "#ff4444"
-                    button.textContent = "💣"
-                } else if (cell.minesAround > 0) {
-                    // Цвета для цифр
-                    val color = when (cell.minesAround) {
-                        1 -> "blue"
-                        2 -> "green"
-                        3 -> "red"
-                        4 -> "darkblue"
-                        5 -> "darkred"
-                        6 -> "teal"
-                        7 -> "black"
-                        8 -> "gray"
-                        else -> "#666"
-                    }
-                    button.style.color = color
-                    button.textContent = cell.minesAround.toString()
+                when {
+                    cell.hasMine -> btn.textContent = "💣"
+                    cell.minesAround > 0 -> btn.textContent = cell.minesAround.toString()
                 }
             } else {
-                button.style.background = "#c0c0c0"
-                if (cell.isFlagged) {
-                    button.textContent = "🚩"
-                }
+                btn.style.background = "#c0c0c0"
+                if (cell.isFlagged) btn.textContent = "🚩"
             }
 
-            // Обработчики событий
-            button.onclick = {
+            // ЛКМ
+            btn.addEventListener("click", {
                 game.revealCell(row, col)
                 renderGame(game)
-            }
+            })
 
-            button.oncontextmenu = { event ->
-                event.preventDefault()
+            // ПКМ
+            btn.addEventListener("contextmenu", { e ->
+                e.preventDefault()
                 game.toggleFlag(row, col)
                 renderGame(game)
-                false
-            }
+            })
 
-            // Эффект при наведении (только для закрытых клеток)
-            if (!cell.isRevealed) {
-                button.onmouseenter = {
-                    if (!cell.isFlagged) {
-                        button.style.background = "#d0d0d0"
-                    }
-                }
-                button.onmouseleave = {
-                    if (!cell.isFlagged) {
-                        button.style.background = "#c0c0c0"
-                    }
-                }
-            }
-
-            board.appendChild(button)
+            board.appendChild(btn)
         }
     }
 
-    // Проверяем состояние игры для алертов
-    window.setTimeout({
-        when (game.gameState) {
-            GameState.WON -> {
-                window.alert("🎉 Поздравляем! Вы выиграли!\nВремя: ${game.elapsedTime} секунд")
-            }
-            GameState.LOST -> {
-                window.alert("💥 Вы проиграли!\nНажмите смайлик, чтобы попробовать снова")
-            }
-            else -> {}
-        }
-    }, 100)
+    if (game.gameState == GameState.WON) {
+        window.setTimeout({window.alert("🎉 Победа!\nВремя: ${game.elapsedTime} сек")
+        }, 100)
+    }
+
+    if (game.gameState == GameState.LOST) {
+        window.setTimeout({
+            window.alert("💥 Поражение!\nНажмите 😊 для новой игры")
+        }, 100)
+    }
 }

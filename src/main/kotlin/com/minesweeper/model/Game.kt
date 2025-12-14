@@ -14,9 +14,7 @@ class Game(
         get() = if (startTime != null) {
             val end = endTime ?: kotlin.js.Date.now()
             ((end - startTime!!) / 1000).toInt()
-        } else {
-            0
-        }
+        } else 0
 
     fun revealCell(row: Int, col: Int): RevealResult {
         if (gameState != GameState.PLAYING) return RevealResult.ALREADY_REVEALED
@@ -41,6 +39,7 @@ class Game(
 
     fun toggleFlag(row: Int, col: Int): Boolean {
         if (gameState != GameState.PLAYING) return false
+        if (!field.minesGenerated) return false   // ❗ КЛЮЧЕВО
         return field.toggleFlag(row, col)
     }
 
